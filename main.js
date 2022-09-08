@@ -31,6 +31,9 @@ var renderer;
 var angleX = -25;
 var angleY = -200.5;
 
+// Canvas offset compensation
+var offsetX, offsetY;
+
 // Sphere physics info
 var useSpherePhysics = false;
 var center;
@@ -40,12 +43,13 @@ var gravity;
 var radius;
 var paused = false;
 
-window.onload = function() {
+/*window.onload = function () {*/ //needed for js-inter
+    window.startWaterDemo = function () {
   var ratio = window.devicePixelRatio || 1;
   var help = document.getElementById('help');
 
-  function onresize() {
-    var width = innerWidth - help.clientWidth - 20;
+  function handleResize() {
+    var width = innerWidth - help.clientWidth; /* - 20; */
     var height = innerHeight;
     gl.canvas.width = width * ratio;
     gl.canvas.height = height * ratio;
@@ -57,6 +61,10 @@ window.onload = function() {
     gl.perspective(45, gl.canvas.width / gl.canvas.height, 0.01, 100);
     gl.matrixMode(gl.MODELVIEW);
     draw();
+	    offsetX = window.getComputedStyle(document.querySelector('canvas'), null)
+      .getPropertyValue("left").replace("px", '');
+    offsetY = window.getComputedStyle(document.querySelector('canvas'), null)
+      .getPropertyValue("top").replace("px", '');
   }
 
   document.body.appendChild(gl.canvas);
@@ -87,7 +95,7 @@ window.onload = function() {
   }
 
   document.getElementById('loading').innerHTML = '';
-  onresize();
+  handleResize();
 
   var requestAnimationFrame =
     window.requestAnimationFrame ||
@@ -106,7 +114,8 @@ window.onload = function() {
   }
   requestAnimationFrame(animate);
 
-  window.onresize = onresize;
+  window.onresize = handleResize;
+  window.onorientationchange = handleResize;
 
   var prevHit;
   var planeNormal;
@@ -185,12 +194,12 @@ window.onload = function() {
   document.onmousedown = function(e) {
     if (!isHelpElement(e.target)) {
       e.preventDefault();
-      startDrag(e.pageX, e.pageY);
+      startDrag(e.pageX - offsetX, e.pageY - offsetY);
     }
   };
 
   document.onmousemove = function(e) {
-    duringDrag(e.pageX, e.pageY);
+    duringDrag(e.pageX - offsetX, e.pageY - offsetY);
   };
 
   document.onmouseup = function() {
@@ -200,13 +209,13 @@ window.onload = function() {
   document.ontouchstart = function(e) {
     if (e.touches.length === 1 && !isHelpElement(e.target)) {
       e.preventDefault();
-      startDrag(e.touches[0].pageX, e.touches[0].pageY);
+      startDrag(e.touches[0].pageX - offsetX, e.touches[0].pageY - offsetY);
     }
   };
 
   document.ontouchmove = function(e) {
     if (e.touches.length === 1) {
-      duringDrag(e.touches[0].pageX, e.touches[0].pageY);
+      duringDrag(e.touches[0].pageX - offsetX, e.touches[0].pageY - offsetY);
     }
   };
 
